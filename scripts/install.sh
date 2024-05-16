@@ -21,10 +21,9 @@ install_3proxy() {
   cp src/3proxy /usr/local/etc/3proxy/bin/
   cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
   chmod +x /etc/init.d/3proxy
-  update-rc.d 3proxy defaults
+  chkconfig 3proxy on
   cd $WORKDIR
 }
-
 
 gen_3proxy() {
   cat <<EOF
@@ -128,9 +127,8 @@ cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 10048
-systemctl start 3proxy
+service 3proxy start
 EOF
-
 
 bash /etc/rc.local
 
