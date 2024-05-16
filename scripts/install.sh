@@ -21,7 +21,7 @@ install_3proxy() {
   cp src/3proxy /usr/local/etc/3proxy/bin/
   cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
   chmod +x /etc/init.d/3proxy
-  update-rc.d 3proxy defaults
+  chkconfig 3proxy on
   cd $WORKDIR
 }
 
@@ -96,7 +96,7 @@ $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 echo "installing apps"
-apt-get -y install gcc net-tools bsdtar zip >/dev/null
+yum -y install gcc net-tools bsdtar zip >/dev/null
 
 install_3proxy
 
@@ -127,9 +127,8 @@ cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 10048
-systemctl start 3proxy
+service 3proxy start
 EOF
-
 
 bash /etc/rc.local
 
