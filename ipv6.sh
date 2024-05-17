@@ -21,11 +21,14 @@ install_3proxy() {
     make -f Makefile.Linux
     mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
     cp src/3proxy /usr/local/etc/3proxy/bin/
+    #cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
+    #chmod +x /etc/init.d/3proxy
+    #chkconfig 3proxy on
     cd $WORKDIR
 }
 download_proxy() {
-    cd /home/cloudfly
-    curl -F "file=@proxy.txt" https://file.io
+cd /home/cloudfly
+curl -F "file=@proxy.txt" https://file.io
 }
 gen_3proxy() {
     cat <<EOF
@@ -42,35 +45,39 @@ setuid 65535
 stacksize 6291456 
 flush
 
-$(awk -F "/" '{print "auth none\n" \"allow *\n" \"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \"flush\n"}' ${WORKDATA})
+
+
+$(awk -F "/" '{print "auth none\n" \
+"allow " $1 "\n" \
+"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
+"flush\n"}' ${WORKDATA})
 EOF
 }
 
-
 gen_proxy_file_for_user() {
-  cat >proxy.txt <<EOF
+    cat >proxy.txt <<EOF
 $(awk -F "/" '{print $3 ":" $4 }' ${WORKDATA})
 EOF
 }
 
+
 gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
-        echo "$IP4/$port/$(gen64 $IP6)"
+        echo "user$port/$(random)/$IP4/$port/$(gen64 $IP6)"
     done
 }
 
 gen_iptables() {
     cat <<EOF
-$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $2 " -m state --state NEW -j ACCEPT"}' ${WORKDATA}) 
+    $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA}) 
 EOF
 }
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $3 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
-
 echo "installing apps"
 yum -y install wget gcc net-tools bsdtar zip >/dev/null
 
@@ -78,6 +85,9 @@ cat << EOF > /etc/rc.d/rc.local
 #!/bin/bash
 touch /var/lock/subsys/local
 EOF
+
+echo "installing apps"
+yum -y install wget gcc net-tools bsdtar zip >/dev/null
 
 install_3proxy
 
@@ -89,7 +99,7 @@ mkdir $WORKDIR && cd $_
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. External subnet for ip6 = ${IP6}"
+echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
 while :; do
   read -p "Enter FIRST_PORT between 21000 and 61000: " FIRST_PORT
