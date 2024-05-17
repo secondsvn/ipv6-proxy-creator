@@ -42,6 +42,7 @@ $(awk -F "/" '{print "auth none\n" \
 EOF
 }
 
+
 gen_proxy_file_for_user() {
   cat >proxy.txt <<EOF
 $(awk -F "/" '{print $3 ":" $4 }' ${WORKDATA})
@@ -91,7 +92,7 @@ EOF
 
 gen_ifconfig() {
   cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
+ifconfig eth0 inet6 add 2401:78c0::6006/116
 EOF
 }
 echo "installing apps"
@@ -105,9 +106,8 @@ WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s icanhazip.com)
-IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
+echo "Internal ip = ${IP4}. External subnet for IPv6 = 2401:78c0::6006/116"
 
 echo "How many proxy do you want to create? Example 500"
 read COUNT
