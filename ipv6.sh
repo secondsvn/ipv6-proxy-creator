@@ -42,9 +42,10 @@ setuid 65535
 stacksize 6291456 
 flush
 
-$(awk -F "/" '{print "proxy -6 -n -a -p" $3 " -i" $1 " -e"$2"\n" "flush\n"}' ${WORKDATA})
+$(awk -F "/" '{print "auth none\n" \"allow *\n" \"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \"flush\n"}' ${WORKDATA})
 EOF
 }
+
 
 gen_proxy_file_for_user() {
   cat >proxy.txt <<EOF
